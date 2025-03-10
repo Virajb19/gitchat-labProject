@@ -1,0 +1,180 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+enum OauthProvider {
+  GOOGLE
+  GITHUB
+}
+
+enum Status {
+  PROCESSING
+  PROCESSED
+}
+
+enum TokenType {
+  EMAIL_VERIFICATION
+  RESET_PASSWORD
+}
+
+// userId should be a string as cuid()
+model User {
+  id            Int       @id @default(autoincrement())
+  username      String    
+  email         String    @unique
+  emailVerified DateTime?
+  password      String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  lastLogin      DateTime @default(now())
+  ProfilePicture String?  @default("")
+
+  OauthProvider OauthProvider?
+  OauthId       String?
+
+  credits Int @default(100)
+
+  projects           Project[]
+  questionsAsked     Question[]
+  stripeTransactions StripeTransaction[]
+  meetings           Meeting[]
+}
+
+model Project {
+  id String @id @default(cuid())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name        String
+  repoURL     String
+  githubToken String?
+
+  deletedAt DateTime?
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  commits    Commit[]
+  embeddings SourceCodeEmbedding[]
+  questions  Question[]
+  meetings   Meeting[]
+  issues     Issue[]
+
+  @@unique([userId, repoURL])
+}
+
+model Commit {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  message      String
+  hash         String
+  authorName   String
+  authorAvatar String
+  date         DateTime
+
+  summary String
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model SourceCodeEmbedding {
+  id String @id @default(cuid())
+
+  summaryEmbedding Unsupported("vector(768)")?
+  sourceCode       String
+  filename         String
+  summary          String
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([filename, projectId])
+}
+
+model Question {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  question String
+  answer   String
+
+  filesReferences Json?
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  @@unique([answer, projectId])
+}
+
+model Meeting {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name   String
+  url    String
+  status Status @default(PROCESSING)
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  issues Issue[]
+}
+
+model Issue {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  start    String
+  end      String
+  gist     String
+  headline String
+  summary  String
+
+  meetingId String
+  meeting   Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model StripeTransaction {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  credits Int
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+}
+
+model VerificationToken {
+  token      String
+  identifier Int
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  type       TokenType
+  expiresAt  DateTime
+
+  @@unique([token, identifier])
+}
