@@ -115,9 +115,9 @@ import {
           const user = await db.user.findUnique({where: {email}})
           if(!user) throw new Error('User not found. Please check your email !')
          
-          if (!user.emailVerified) {
-            throw new Error("Email not verified. Please check your email.");
-          } 
+          // if (!user.emailVerified) {
+          //   throw new Error("Email not verified. Please check your email.");
+          // } 
           
           const isMatch = await bcrypt.compare(password, user.password as string)     
           if(!isMatch) throw new Error('Incorrect password. Try again !!!')

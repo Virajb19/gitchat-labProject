@@ -26,7 +26,7 @@ export default function CreatePage() {
 
   const form = useForm<Input>({
     resolver: zodResolver(createProjectSchema),
-    defaultValues: { name: 'Project', repoURL: 'https://github.com/owner/repo'}
+    defaultValues: { name: 'Project', repoURL: 'https://github.com/Virajb19/Portfolio'}
   })
 
   const [creditInfo, setCreditInfo] = useState({ fileCount: 0, userCredits: 0})

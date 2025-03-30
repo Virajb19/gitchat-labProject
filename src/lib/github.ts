@@ -42,7 +42,7 @@ export async function pollCommits(projectId: string) {
    const commits = await getCommits(project.repoURL)
 
    // existingCommits
-   const processedCommits = await db.commit.findMany({ where: { projectId}, orderBy: { date: 'desc'}})  
+   const processedCommits = await db.commit.findMany({ where: { projectId}, orderBy: { date: 'desc'}, select: { hash: true}})  
 
    const existingHashes = new Set(processedCommits.map(c => c.hash))
    const newCommits = commits.filter(commit => !existingHashes.has(commit.hash))

@@ -16,7 +16,7 @@ export default async function ResetPasswordPage({params: {token}}: { params: { t
 
   return <div className="w-full min-h-screen flex-center">
        {isExpired ? (
-         <div className="w-[90%] lg:w-1/3 sm:w-[70%] max-w-3xl z-30 bg-card rounded-lg p-4 flex flex-col text-center gap-4">
+         <div className="w-[90%] lg:w-1/3 sm:w-[70%] max-w-3xl z-30 bg-card shadow-lg shadow-blue-600 rounded-lg p-4 flex flex-col text-center gap-4">
             <h2 className="text-lg sm:text-2xl font-bold">Link expired!. Please request a new one</h2>
             <Link href={'/signin'} className="group flex-center gap-3 rounded-lg bg-blue-600 py-2 px-4 font-semibold"><ArrowLeft className="group-hover:-translate-x-1 duration-300"/>Back to login</Link>
         </div>

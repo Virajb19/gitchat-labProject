@@ -12,6 +12,8 @@ import { useRouter } from 'nextjs-toploader/app';
 import { useMediaQuery } from 'usehooks-ts'
 import SearchInput from "./SearchInput";
 import SearchInputMobile from "./SearchInputMobile";
+import { getEmbeddings } from "~/server/actions";
+import { toast } from "sonner";
 
 export default function Searchbar() {
 
@@ -83,11 +85,11 @@ useEffect(() => {
         )}
       </AnimatePresence>
 
-      {/* <button onClick={async () => {
+      <button onClick={async () => {
         const embeddings = await getEmbeddings(projectId)
         toast.success(embeddings)
         }} className="absolute top-1/2 left-1/2 z-50 rounded-lg p-4 bg-red-900">
                 Click
-            </button> */}
+            </button>
   </motion.div>
 }

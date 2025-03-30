@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { Document } from '@langchain/core/documents'
+import { z } from 'zod'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string)
 const model = genAI.getGenerativeModel({
@@ -82,4 +83,48 @@ export async function generateEmbedding(summary: string) {
      console.error('Error generating embedding of the summary',err)
      return []
   } 
+}
+
+const filesSummarySchema = z.record(z.string(), z.string())
+
+export async function summarizeFilesBatch(docs: Document[]): Promise<string[]> {
+     try {
+        const prompt = `You are an intelligent senior software engineer explaining code to new team members.
+      For each of the following files, provide a concise summary (max 100 words) in this exact JSON string format:
+     
+       {
+           "path/to/file1": "summary text",
+           "path/to/file2": "summary text"
+       }
+
+       Remember these points:
+       -- Keys are EXACTLY these filenames: ${docs.map(d => d.metadata.source).join(', ')}
+       -- For each file summary should not exceed 100 words
+       -- Respond ONLY with valid JSON, no other text
+
+       Files to summarize:
+
+       ${docs.map(doc => `
+            ${doc.metadata.source}:
+            ${'```'}
+            ${doc.pageContent.slice(0, 10000)}
+            ${'```'}
+       `).join('\n')}`
+
+       const { response } = await model.generateContent([prompt])
+       const rawResponse = response.text()
+
+       const jsonString = rawResponse.replace(/```json/g, '').replace(/```/g, '').trim()
+       const jsonParsedData = JSON.parse(jsonString)
+       const result = filesSummarySchema.safeParse(jsonParsedData)
+       if(!result.success) throw new Error(`Invalid response format: ${result.error.flatten().fieldErrors}`)
+     
+       const batchSummaries = docs.map(doc => result.data[doc.metadata.source] || '')
+       return batchSummaries
+
+     } catch(err) {
+          console.error('Error generating summaries', err)
+          return new Array(docs.length).fill('') as string[]
+          // return []
+     }
 }

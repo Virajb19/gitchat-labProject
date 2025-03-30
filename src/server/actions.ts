@@ -32,16 +32,16 @@ export async function signup(formData: formData) {
     const hashedPassword = await bcrypt.hash(password,10)
     const user = await db.user.create({data: {username,email,password: hashedPassword}, select: {id: true, email: true}})
 
-    const verificationToken = await db.verificationToken.create({data: {identifier: user.id, token: uuid(), type: 'EMAIL_VERIFICATION', expiresAt: new Date(Date.now() + 60 * 60 * 1000)}})
+    // const verificationToken = await db.verificationToken.create({data: {identifier: user.id, token: uuid(), type: 'EMAIL_VERIFICATION', expiresAt: new Date(Date.now() + 60 * 60 * 1000)}})
     
-    const confirmationLink = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email/${verificationToken.token}`
-    await sendConfirmationEmail(user.email, confirmationLink, verificationToken.type)
+    // const confirmationLink = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email/${verificationToken.token}`
+    // await sendConfirmationEmail(user.email, confirmationLink, verificationToken.type)
 
-    cookies().set('USER_ID', user.id.toString(), {
-        maxAge: 60 * 60,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production'
-    })
+    // cookies().set('USER_ID', user.id.toString(), {
+    //     maxAge: 60 * 60,
+    //     httpOnly: true,
+    //     secure: process.env.NODE_ENV === 'production'
+    // })
  
     return {success: true, msg: 'Signed up successfully. Welcome to GitChat !!!'}
 } catch(err) {
@@ -119,7 +119,7 @@ export async function askQuestion(question: string, projectId: string) {
      LIMIT 10 
     ` as { filename: string, sourceCode: string, summary: string} []
 
-    console.log(result.length)
+    console.log('Similar files', result.length)
 
     let context = ''
 
